@@ -31,6 +31,7 @@ window.addEventListener("DOMContentLoaded", function () {
     sphere.position.y = 1;
 
     var inputMap = {};
+    var name;
     // This sceneloader is for loading gltf models it constructor takes : location, name, scene
     var character = new BABYLON.SceneLoader.ImportMesh(
       "",
@@ -40,6 +41,8 @@ window.addEventListener("DOMContentLoaded", function () {
       async function (newMeshes, particleSystems, skeletons, animationGroups) {
         try {
           var dude = newMeshes[0];
+          name = dude.name;
+          console.log("This is for dude", dude.name);
           var animations = animationGroups;
           console.log(animations);
 
@@ -69,6 +72,7 @@ window.addEventListener("DOMContentLoaded", function () {
               }
             )
           );
+          dude.rotationQuaternion = null;
           scene.onBeforeRenderObservable.add(() => {
             if (inputMap["ArrowUp"]) {
               dude.position.z += 0.1;
@@ -77,28 +81,30 @@ window.addEventListener("DOMContentLoaded", function () {
             if (inputMap["ArrowLeft"]) {
               dude.position.x -= 0.1;
               animations[0].play();
-              dude.rotation.y -= 90;
+              dude.rotation.y -= 0.01;
             }
             if (inputMap["ArrowDown"]) {
               dude.position.z -= 0.1;
               animations[0].play();
-              dude.rotation.y += 180;
+              dude.rotation.y += 0.01;
             }
             if (inputMap["ArrowRight"]) {
               dude.position.x += 0.1;
               animations[0].play();
-              dude.rotation.y += 90;
+              dude.rotation.y += 0.01;
             }
 
             //Adding follow Camera
           });
+          console.log("This is dude name", name);
+          createFollowCamera(scene, dude);
         } catch (e) {
           console.log(e);
         }
       }
     );
 
-    console.log(character);
+    // console.log(character);
     // create a built-in "ground" shape;
     var ground = BABYLON.Mesh.CreateGround("ground1", 20, 20, 10, scene);
 
@@ -140,4 +146,21 @@ window.addEventListener("DOMContentLoaded", function () {
       yield;
     }
   };
+
+  function createFollowCamera(scene, target) {
+    var followCamera = new BABYLON.FollowCamera(
+      "FollowCamera",
+      target.position,
+      scene,
+      target
+    );
+    followCamera.radius = 10;
+    followCamera.heightOffset = 6;
+    followCamera.rotationOffset = 0;
+    followCamera.cameraAcceleration = 0.1;
+    followCamera.maxCameraSpeed = 5;
+
+    scene.activeCamera = followCamera;
+    return followCamera;
+  }
 });
